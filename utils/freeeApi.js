@@ -2,7 +2,7 @@ import axios from "axios";
 import { getLastExecutionDate, saveLastExecutionDate } from "./dateUtils.js";
 import { saveTokensToEnv } from "./envUtils.js";
 import { sendDiscordNotification } from "./discordUtils.js";
-import { KOSAIHI_ACCOUNT_IDS } from "../config/constants.js";
+import { KOSAIHI_ACCOUNT_IDS } from "./constants.js";
 
 // アクセストークンをリフレッシュ
 async function refreshAccessToken() {
