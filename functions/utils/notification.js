@@ -1,13 +1,13 @@
 export const notification = async (message) => {
-  const WEBHOOK_URL = process.env.WEBHOOK_URL
+  const WEBHOOK_URL = process.env.WEBHOOK_URL;
 
   await fetch(WEBHOOK_URL, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      content: 'いつも頑張っていてえらい',
+      content: message,
     }),
-  })
-}
+  });
+};
