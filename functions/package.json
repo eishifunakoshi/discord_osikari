@@ -2,7 +2,7 @@
   "name": "discord_osikari",
   "version": "1.0.0",
   "type": "module",
-  "main": "bot.js",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -22,7 +22,7 @@
     "eslint": "^9.18.0",
     "globals": "^15.14.0"
   },
-  "engines": {  
-  "node": "22"
-}
+  "engines": {
+    "node": "22"
+  }
 }
