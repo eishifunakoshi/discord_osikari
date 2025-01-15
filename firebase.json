@@ -11,5 +11,9 @@
       ],
       "runtime": "nodejs18"
     }
-  ]
+  ],
+  "schedule": {
+    "schedule": "every 168 hours",
+    "timeZone": "Asia/Tokyo"
+  }
 }
