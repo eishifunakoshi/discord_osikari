@@ -1,6 +1,6 @@
 import { getHighExpenses } from "./utils/freeeApi.js";
 import { notification } from "./utils/notification.js";
-import * as functions from "firebase-functions";
+import { functions } from "firebase-functions";
 
 export const weeklyMessage = functions.pubsub
   .schedule("every 7 days")
