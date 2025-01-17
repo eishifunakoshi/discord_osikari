@@ -5,6 +5,9 @@
       "codebase": "default",
       "runtime": "nodejs18",
       "region": "asia-northeast1",
+      "schedule": {
+        "timeZone": "Asia/Tokyo"
+      },
       "ignore": [
         "node_modules",
         ".git",
