@@ -6,7 +6,7 @@ export const weeklyMessage = onSchedule("every 7 days", async () => {
   const expenses = await getHighExpenses(new Date());
 
   if (expenses.length === 0) {
-    await notification("やるやん、その調子で励むが良い");
+    await notification("やるじゃん、その調子で励むが良い");
     return null;
   } else {
     for (const expense of expenses) {
