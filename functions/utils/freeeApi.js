@@ -1,4 +1,3 @@
-import * as functions from "firebase-functions";
 import fetch from "node-fetch";
 
 const FREEE_API = {
@@ -8,12 +7,12 @@ const FREEE_API = {
   EXPENSE_THRESHOLD: 100000,
 };
 
-// let accessToken = null;
-// let refreshToken = null;
+let accessToken = null;
+let refreshToken = null;
 
-async function fetchWithAuth(path, options = {}, credentials) {
+async function fetchWithAuth(path, options = {}) {
   if (!accessToken) {
-    await refreshAccessToken(credentials);
+    await refreshAccessToken();
   }
 
   const url = new URL(path, FREEE_API.BASE_URL);
@@ -32,8 +31,8 @@ async function fetchWithAuth(path, options = {}, credentials) {
   });
 
   if (response.status === 401) {
-    await refreshAccessToken(credentials);
-    return fetchWithAuth(path, options, credentials);
+    await refreshAccessToken();
+    return fetchWithAuth(path, options);
   }
 
   if (!response.ok) {
@@ -43,14 +42,20 @@ async function fetchWithAuth(path, options = {}, credentials) {
   return response.json();
 }
 
-async function refreshAccessToken(credentials) {
+async function refreshAccessToken() {
   try {
+    const clientId = process.env.FREEE_CLIENT_ID;
+    const clientSecret = process.env.FREEE_CLIENT_SECRET;
+    const refreshToken = process.env.FREEE_REFRESH_TOKEN;
+
     const formData = new URLSearchParams({
-      grant_type: refresh_token,
-      client_id: credentials.clientId,
-      client_secret: credentials.clientSecret,
-      refresh_token: credentials.refreshToken || refreshToken,
+      grant_type: "refresh_token",
+      client_id: clientId,
+      client_secret: clientSecret,
+      refresh_token: refreshToken,
     });
+
+    console.log("formData:", formData.toString());
 
     const response = await fetch(FREEE_API.TOKEN_URL, {
       method: "POST",
@@ -59,12 +64,16 @@ async function refreshAccessToken(credentials) {
       },
       body: formData,
     });
+    console.log("formData:", formData.toString());
 
     if (!response.ok) {
+      const errorBody = await response.text(); // エラーレスポンスを取得
+      console.error("Error response body:", errorBody); // レスポンス内容をログに出力
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json();
+
     accessToken = data.access_token;
     refreshToken = data.refresh_token;
 
@@ -74,21 +83,18 @@ async function refreshAccessToken(credentials) {
   }
 }
 
-async function getExpenses(startDate, endDate, credentials) {
+async function getExpenses(startDate, endDate) {
   try {
-    const data = await fetchWithAuth(
-      "/deals",
-      {
-        params: {
-          company_id: credentials.companyId,
-          type: "expense",
-          limit: 100,
-          start_date: startDate,
-          end_date: endDate,
-        },
+    const companyId = process.env.FREEE_COMPANY_ID;
+    const data = await fetchWithAuth("/deals", {
+      params: {
+        company_id: companyId,
+        type: "expense",
+        limit: 100,
+        start_date: startDate,
+        end_date: endDate,
       },
-      credentials
-    );
+    });
 
     return data.deals || [];
   } catch (error) {
@@ -118,19 +124,7 @@ export async function getHighExpenses(lastCheckedDate) {
     const startDate = lastCheckedDate.toISOString().split("T")[0];
     const endDate = now.toISOString().split("T")[0];
 
-    const config = functions.config().freee;
-    const credentials = {
-      clientId: config.client_id,
-      clientSecret: config.client_secret,
-      accessToken: config.access_token,
-      refreshToken: config.refresh_token,
-      companyId: config.company_id,
-    };
-
-    accessToken = credentials.accessToken;
-    refreshToken = credentials.refreshToken;
-
-    const deals = await getExpenses(startDate, endDate, credentials);
+    const deals = await getExpenses(startDate, endDate);
     const highExpenses = filterHighExpenses(deals);
 
     return {

@@ -1,10 +1,9 @@
-import * as functions from "firebase-functions";
+import fetch from "node-fetch";
 
 export const notification = async (message) => {
-  const config = functions.config();
-  const WEBHOOK_URL = config.webhook.url;
+  const webhookUrl = process.env.WEBHOOK_URL;
 
-  await fetch(WEBHOOK_URL, {
+  await fetch(webhookUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
