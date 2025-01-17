@@ -1,4 +1,4 @@
-import { functions } from "firebase-functions";
+import * as functions from "firebase-functions";
 
 export const notification = async (message) => {
   const config = functions.config();
