@@ -1,4 +1,5 @@
-import { functions } from "firebase-functions";
+// import { functions } from "firebase-functions";
+import fetch from "node-fetch";
 
 const FREEE_API = {
   BASE_URL: "https://api.freee.co.jp/api/1",
