@@ -1,3 +1,5 @@
+import { functions } from "firebase-functions";
+
 const FREEE_API = {
   BASE_URL: "https://api.freee.co.jp/api/1",
   TOKEN_URL: "https://accounts.secure.freee.co.jp/public_api/token",
@@ -43,19 +45,11 @@ async function fetchWithAuth(path, options = {}, credentials) {
 async function refreshAccessToken(credentials) {
   try {
     const formData = new URLSearchParams({
-      grant_type: refreshToken ? "refresh_token" : "authorization_code", //追加
+      grant_type: refreshToken,
       client_id: credentials.clientId,
       client_secret: credentials.clientSecret,
-      // refresh_token: credentials.refreshToken || refreshToken,
+      refresh_token: credentials.refreshToken || refreshToken,
     });
-
-    if (refreshToken) {
-      //追加
-      formData.append("refresh_token", refreshToken);
-    } else {
-      formData.append("code", credentials.authCode); // 初回認証用
-      formData.append("redirect_uri", credentials.redirectUri);
-    } //追加
 
     const response = await fetch(FREEE_API.TOKEN_URL, {
       method: "POST",
@@ -123,14 +117,17 @@ export async function getHighExpenses(lastCheckedDate) {
     const startDate = lastCheckedDate.toISOString().split("T")[0];
     const endDate = now.toISOString().split("T")[0];
 
+    const config = functions.config().freee;
     const credentials = {
-      clientId: process.env.FREEE_CLIENT_ID,
-      clientSecret: process.env.FREEE_CLIENT_SECRET,
-      refreshToken: process.env.FREEE_REFRESH_TOKEN,
-      authCode: process.env.FREEE_AUTH_CODE, // 初回認証用 追加
-      redirectUri: process.env.FREEE_REDIRECT_URI, // 初回認証用 追加
-      companyId: process.env.COMPANY_ID,
+      clientId: config.client_id,
+      clientSecret: config.client_secret,
+      accessToken: config.access_token,
+      refreshToken: config.refresh_token,
+      companyId: config.company_id,
     };
+
+    accessToken = credentials.accessToken;
+    refreshToken = credentials.refreshToken;
 
     const deals = await getExpenses(startDate, endDate, credentials);
     const highExpenses = filterHighExpenses(deals);
