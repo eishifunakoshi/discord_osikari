@@ -1,4 +1,4 @@
-// import { functions } from "firebase-functions";
+import { functions } from "firebase-functions";
 import fetch from "node-fetch";
 
 const FREEE_API = {
@@ -8,8 +8,8 @@ const FREEE_API = {
   EXPENSE_THRESHOLD: 100000,
 };
 
-let accessToken = null;
-let refreshToken = null;
+// let accessToken = null;
+// let refreshToken = null;
 
 async function fetchWithAuth(path, options = {}, credentials) {
   if (!accessToken) {
@@ -46,7 +46,7 @@ async function fetchWithAuth(path, options = {}, credentials) {
 async function refreshAccessToken(credentials) {
   try {
     const formData = new URLSearchParams({
-      grant_type: refreshToken,
+      grant_type: refresh_token,
       client_id: credentials.clientId,
       client_secret: credentials.clientSecret,
       refresh_token: credentials.refreshToken || refreshToken,

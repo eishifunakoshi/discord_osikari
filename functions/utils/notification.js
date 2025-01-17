@@ -1,5 +1,8 @@
+import { functions } from "firebase-functions";
+
 export const notification = async (message) => {
-  const WEBHOOK_URL = process.env.WEBHOOK_URL;
+  const config = functions.config();
+  const WEBHOOK_URL = config.webhook.url;
 
   await fetch(WEBHOOK_URL, {
     method: "POST",
