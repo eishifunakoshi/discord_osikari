@@ -1,4 +1,4 @@
-import { functions } from "firebase-functions";
+import * as functions from "firebase-functions";
 import fetch from "node-fetch";
 
 const FREEE_API = {
