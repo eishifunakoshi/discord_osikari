@@ -3,7 +3,11 @@ import { notification } from "./utils/notification.js";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 
 export const weeklyMessage = onSchedule(
-  { schedule: "every 168 hours", timeZone: "Asia/Tokyo" },
+  {
+    schedule: "every 168 hours",
+    timeZone: "Asia/Tokyo",
+    region: "asia-northeast1",
+  },
   async () => {
     const expenses = await getHighExpenses(new Date());
 
