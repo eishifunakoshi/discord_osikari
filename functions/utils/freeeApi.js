@@ -1,7 +1,7 @@
 import fetch from "node-fetch";
 
 const FREEE_API = {
-  BASE_URL: "https://api.freee.co.jp/api/1",
+  BASE_URL: "https://api.freee.co.jp/api/1/",
   TOKEN_URL: "https://accounts.secure.freee.co.jp/public_api/token",
   KOSAIHI_ACCOUNT_IDS: [866747733],
   EXPENSE_THRESHOLD: 100000,
@@ -22,7 +22,14 @@ async function fetchWithAuth(path, options = {}) {
     });
   }
 
-  const response = await fetch(url, {
+  const requestUrl = url.toString();
+  console.log("Request URL:", requestUrl); // ここでURLを確認
+  console.log("Request Headers:", {
+    Authorization: `Bearer ${accessToken}`,
+    ...options.headers,
+  });
+
+  const response = await fetch(requestUrl, {
     ...options,
     headers: {
       ...options.headers,
@@ -31,31 +38,36 @@ async function fetchWithAuth(path, options = {}) {
   });
 
   if (response.status === 401) {
-    await refreshAccessToken();
+    // await refreshAccessToken();
+    accessToken = await refreshAccessToken();
     return fetchWithAuth(path, options);
   }
 
   if (!response.ok) {
+    const errorBody = await response.text(); // エラー時のレスポンスを確認
+    console.error("Error response body:", errorBody);
     throw new Error(`HTTP error! status: ${response.status}`);
   }
+  // レスポンスのJSONをログに表示
+  const responseData = await response.json();
+  console.log("Response JSON Data:", responseData);
 
-  return response.json();
+  return responseData;
+  // return response.json();
 }
 
 async function refreshAccessToken() {
   try {
-    const clientId = process.env.FREEE_CLIENT_ID;
-    const clientSecret = process.env.FREEE_CLIENT_SECRET;
-    const refreshToken = process.env.FREEE_REFRESH_TOKEN;
+    const client_Id = process.env.FREEE_CLIENT_ID;
+    const client_Secret = process.env.FREEE_CLIENT_SECRET;
+    const refresh_Token = process.env.FREEE_REFRESH_TOKEN;
 
     const formData = new URLSearchParams({
       grant_type: "refresh_token",
-      client_id: clientId,
-      client_secret: clientSecret,
-      refresh_token: refreshToken,
+      client_id: client_Id,
+      client_secret: client_Secret,
+      refresh_token: refresh_Token,
     });
-
-    console.log("formData:", formData.toString());
 
     const response = await fetch(FREEE_API.TOKEN_URL, {
       method: "POST",
@@ -64,15 +76,13 @@ async function refreshAccessToken() {
       },
       body: formData,
     });
-    console.log("formData:", formData.toString());
 
     if (!response.ok) {
-      const errorBody = await response.text(); // エラーレスポンスを取得
-      console.error("Error response body:", errorBody); // レスポンス内容をログに出力
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json();
+    console.log("Access token response:", data);
 
     accessToken = data.access_token;
     refreshToken = data.refresh_token;
@@ -86,7 +96,7 @@ async function refreshAccessToken() {
 async function getExpenses(startDate, endDate) {
   try {
     const companyId = process.env.FREEE_COMPANY_ID;
-    const data = await fetchWithAuth("/deals", {
+    const data = await fetchWithAuth("deals", {
       params: {
         company_id: companyId,
         type: "expense",
@@ -120,9 +130,14 @@ function filterHighExpenses(deals) {
 
 export async function getHighExpenses(lastCheckedDate) {
   try {
-    const now = new Date();
-    const startDate = lastCheckedDate.toISOString().split("T")[0];
-    const endDate = now.toISOString().split("T")[0];
+    const endDate = lastCheckedDate.toISOString().split("T")[0];
+
+    const startDateObj = new Date(lastCheckedDate);
+    startDateObj.setDate(startDateObj.getDate() - 7); // 1週間前
+    const startDate = startDateObj.toISOString().split("T")[0];
+
+    console.log("Start Date:", startDate);
+    console.log("End Date:", endDate);
 
     const deals = await getExpenses(startDate, endDate);
     const highExpenses = filterHighExpenses(deals);
