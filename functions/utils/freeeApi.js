@@ -43,11 +43,11 @@ async function fetchWithAuth(path, options = {}) {
   }
 
   if (!response.ok) {
-    const errorBody = await response.text(); // エラー時のレスポンスを確認
+    const errorBody = await response.text();
     console.error("Error response body:", errorBody);
     throw new Error(`HTTP error! status: ${response.status}`);
   }
-  // レスポンスのJSONをログに表示
+
   const responseData = await response.json();
   console.log("Response JSON Data:", responseData);
 
@@ -92,7 +92,7 @@ async function refreshAccessToken() {
   }
 }
 
-async function getExpenses(startDate, endDate) {
+async function getExpenses() {
   try {
     const companyId = process.env.FREEE_COMPANY_ID;
     const data = await fetchWithAuth("deals", {
@@ -100,8 +100,6 @@ async function getExpenses(startDate, endDate) {
         company_id: companyId,
         type: "expense",
         limit: 100,
-        start_date: startDate,
-        end_date: endDate,
       },
     });
     return data.deals || [];
@@ -114,8 +112,7 @@ function filterHighExpenses(deals, startDate, endDate) {
   return deals.flatMap((deal) => {
     const issueDate = new Date(deal.issue_date);
     if (issueDate < new Date(startDate) || issueDate > new Date(endDate)) {
-      console.warn(`Skipping deal outside date range: ${deal.issue_date}`);
-      return []; // 範囲外のデータは除外
+      return [];
     }
 
     const filteredDetails = deal.details.filter((detail) => {
@@ -137,26 +134,29 @@ function filterHighExpenses(deals, startDate, endDate) {
 
 export async function getHighExpenses(lastCheckedDate) {
   try {
-    const endDate = lastCheckedDate.toISOString().split("T")[0];
+    const endDateObj = new Date(lastCheckedDate);
+    endDateObj.setDate(endDateObj.getDate() - 7); // 1週間前
+    const endDate = endDateObj.toISOString().split("T")[0];
 
     const startDateObj = new Date(lastCheckedDate);
-    startDateObj.setDate(startDateObj.getDate() - 7); // 1週間前
+    startDateObj.setDate(startDateObj.getDate() - 14); //2週間前
     const startDate = startDateObj.toISOString().split("T")[0];
 
     console.log("Start Date:", startDate);
     console.log("End Date:", endDate);
 
-    const deals = await getExpenses(startDate, endDate);
+    const deals = await getExpenses();
 
     console.log("Deals:", deals);
 
-    const highExpenses = filterHighExpenses(deals);
+    const highExpenses = filterHighExpenses(deals, startDate, endDate);
 
     console.log("High Expenses:", highExpenses);
 
     return {
       expenses: highExpenses,
-      lastCheckedDate: lastCheckedDate,
+      endDate: endDate,
+      startDate: startDate,
     };
   } catch (error) {
     console.error("Failed to fetch high expenses:", error);
