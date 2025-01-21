@@ -11,7 +11,7 @@ const TOKEN_DOC_PATH = "tokens/freee_refresh_token";
 
 export async function getStoredRefreshToken() {
   const docRef = firestore.doc(TOKEN_DOC_PATH);
-  const docSnap = await docRef.get(); // ドキュメントを取得
+  const docSnap = await docRef.get();
   if (docSnap.exists) {
     return docSnap.data().refresh_token;
   } else {
@@ -30,7 +30,7 @@ export async function initializeRefreshToken() {
   const docSnap = await docRef.get();
 
   if (!docSnap.exists) {
-    const initialToken = process.env.FREEE_REFRESH_TOKEN; // .env から初期トークンを取得
+    const initialToken = process.env.FREEE_REFRESH_TOKEN;
     await saveRefreshToken(initialToken);
   } else {
   }
