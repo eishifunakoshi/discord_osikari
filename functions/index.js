@@ -9,7 +9,7 @@ export const weeklyMessage = onSchedule(
     region: "asia-northeast1",
   },
   async () => {
-    const expenses = await getHighExpenses(new Date());
+    const { expenses } = await getHighExpenses(new Date());
 
     if (expenses.length === 0) {
       await notification("やるじゃん、その調子で励むが良い");

@@ -118,27 +118,58 @@ async function getExpenses(startDate, endDate) {
   }
 }
 
-function filterHighExpenses(deals) {
+function filterHighExpenses(deals, startDate, endDate) {
   return deals.flatMap((deal) => {
-    console.log("Deal details:", deal.details);
+    // console.log("Deal details:", deal.details);
     // deal.details が存在し、配列であるかを確認
-    if (!Array.isArray(deal.details)) {
-      console.warn("Invalid or missing details format:", deal.details);
-      return []; // 無効な場合は空配列を返す
+    // if (!Array.isArray(deal.details)) {
+    //   console.warn("Invalid or missing details format:", deal.details);
+    //   return []; // 無効な場合は空配列を返す
+    // }
+
+    const issueDate = new Date(deal.issue_date);
+    if (issueDate < new Date(startDate) || issueDate > new Date(endDate)) {
+      console.warn(`Skipping deal outside date range: ${deal.issue_date}`);
+      return []; // 範囲外のデータは除外
     }
 
-    return deal.details
-      .filter((detail) => {
-        FREEE_API.KOSAIHI_ACCOUNT_IDS.includes(detail.account_item_id) &&
-          detail.amount >= FREEE_API.EXPENSE_THRESHOLD;
-      })
-      .map((detail) => ({
-        amount: detail.amount,
-        date: deal.issue_date,
-        description: detail.description || "説明なし",
-      }));
+    const filteredDetails = deal.details.filter((detail) => {
+      const isValidAccount = FREEE_API.KOSAIHI_ACCOUNT_IDS.includes(
+        detail.account_item_id
+      );
+      const isAboveThreshold = detail.amount >= FREEE_API.EXPENSE_THRESHOLD;
+
+      console.log(
+        `Detail - ID: ${detail.id}, Account Valid: ${isValidAccount}, Above Threshold: ${isAboveThreshold}`
+      );
+
+      return isValidAccount && isAboveThreshold;
+    });
+
+    // フィルタ後の結果をログ
+    console.log("Filtered details:", filteredDetails);
+
+    // マッピング
+    return filteredDetails.map((detail) => ({
+      amount: detail.amount,
+      date: deal.issue_date,
+      description: detail.description || "説明なし",
+    }));
   });
 }
+
+//     return deal.details
+//       .filter((detail) => {
+//         FREEE_API.KOSAIHI_ACCOUNT_IDS.includes(detail.account_item_id) &&
+//           detail.amount >= FREEE_API.EXPENSE_THRESHOLD;
+//       })
+//       .map((detail) => ({
+//         amount: detail.amount,
+//         date: deal.issue_date,
+//         description: detail.description || "説明なし",
+//       }));
+//   });
+// }
 
 export async function getHighExpenses(lastCheckedDate) {
   try {
@@ -152,7 +183,12 @@ export async function getHighExpenses(lastCheckedDate) {
     console.log("End Date:", endDate);
 
     const deals = await getExpenses(startDate, endDate);
+
+    console.log("Deals:", deals);
+
     const highExpenses = filterHighExpenses(deals);
+
+    console.log("High Expenses:", highExpenses);
 
     return {
       expenses: highExpenses,
