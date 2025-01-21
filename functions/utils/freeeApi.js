@@ -28,11 +28,6 @@ async function fetchWithAuth(path, options = {}) {
   }
 
   const requestUrl = url.toString();
-  console.log("Request URL:", requestUrl); // ここでURLを確認
-  console.log("Request Headers:", {
-    Authorization: `Bearer ${accessToken}`,
-    ...options.headers,
-  });
 
   const response = await fetch(requestUrl, {
     ...options,
@@ -44,7 +39,6 @@ async function fetchWithAuth(path, options = {}) {
 
   if (response.status === 401) {
     await refreshAccessToken();
-    // accessToken = await refreshAccessToken();
     return fetchWithAuth(path, options);
   }
 
@@ -58,7 +52,6 @@ async function fetchWithAuth(path, options = {}) {
   console.log("Response JSON Data:", responseData);
 
   return responseData;
-  // return response.json();
 }
 
 async function refreshAccessToken() {
@@ -88,7 +81,6 @@ async function refreshAccessToken() {
     }
 
     const data = await response.json();
-    console.log("Access token response:", data);
 
     accessToken = data.access_token;
     refreshToken = data.refresh_token;
@@ -120,13 +112,6 @@ async function getExpenses(startDate, endDate) {
 
 function filterHighExpenses(deals, startDate, endDate) {
   return deals.flatMap((deal) => {
-    // console.log("Deal details:", deal.details);
-    // deal.details が存在し、配列であるかを確認
-    // if (!Array.isArray(deal.details)) {
-    //   console.warn("Invalid or missing details format:", deal.details);
-    //   return []; // 無効な場合は空配列を返す
-    // }
-
     const issueDate = new Date(deal.issue_date);
     if (issueDate < new Date(startDate) || issueDate > new Date(endDate)) {
       console.warn(`Skipping deal outside date range: ${deal.issue_date}`);
@@ -139,17 +124,9 @@ function filterHighExpenses(deals, startDate, endDate) {
       );
       const isAboveThreshold = detail.amount >= FREEE_API.EXPENSE_THRESHOLD;
 
-      console.log(
-        `Detail - ID: ${detail.id}, Account Valid: ${isValidAccount}, Above Threshold: ${isAboveThreshold}`
-      );
-
       return isValidAccount && isAboveThreshold;
     });
 
-    // フィルタ後の結果をログ
-    console.log("Filtered details:", filteredDetails);
-
-    // マッピング
     return filteredDetails.map((detail) => ({
       amount: detail.amount,
       date: deal.issue_date,
@@ -157,19 +134,6 @@ function filterHighExpenses(deals, startDate, endDate) {
     }));
   });
 }
-
-//     return deal.details
-//       .filter((detail) => {
-//         FREEE_API.KOSAIHI_ACCOUNT_IDS.includes(detail.account_item_id) &&
-//           detail.amount >= FREEE_API.EXPENSE_THRESHOLD;
-//       })
-//       .map((detail) => ({
-//         amount: detail.amount,
-//         date: deal.issue_date,
-//         description: detail.description || "説明なし",
-//       }));
-//   });
-// }
 
 export async function getHighExpenses(lastCheckedDate) {
   try {
