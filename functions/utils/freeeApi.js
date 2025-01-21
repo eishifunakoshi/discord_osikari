@@ -1,4 +1,9 @@
 import fetch from "node-fetch";
+import {
+  getStoredRefreshToken,
+  saveRefreshToken,
+  initializeRefreshToken,
+} from "./firebase.js";
 
 const FREEE_API = {
   BASE_URL: "https://api.freee.co.jp/api/1/",
@@ -38,8 +43,8 @@ async function fetchWithAuth(path, options = {}) {
   });
 
   if (response.status === 401) {
-    // await refreshAccessToken();
-    accessToken = await refreshAccessToken();
+    await refreshAccessToken();
+    // accessToken = await refreshAccessToken();
     return fetchWithAuth(path, options);
   }
 
@@ -58,9 +63,10 @@ async function fetchWithAuth(path, options = {}) {
 
 async function refreshAccessToken() {
   try {
+    await initializeRefreshToken();
     const client_Id = process.env.FREEE_CLIENT_ID;
     const client_Secret = process.env.FREEE_CLIENT_SECRET;
-    const refresh_Token = process.env.FREEE_REFRESH_TOKEN;
+    const refresh_Token = await getStoredRefreshToken();
 
     const formData = new URLSearchParams({
       grant_type: "refresh_token",
@@ -86,6 +92,7 @@ async function refreshAccessToken() {
 
     accessToken = data.access_token;
     refreshToken = data.refresh_token;
+    await saveRefreshToken(refreshToken);
 
     return accessToken;
   } catch (error) {
@@ -105,7 +112,6 @@ async function getExpenses(startDate, endDate) {
         end_date: endDate,
       },
     });
-
     return data.deals || [];
   } catch (error) {
     throw new Error(`Failed to fetch expenses: ${error.message}`);
@@ -113,19 +119,25 @@ async function getExpenses(startDate, endDate) {
 }
 
 function filterHighExpenses(deals) {
-  return deals.flatMap((deal) =>
-    deal.details
-      .filter(
-        (detail) =>
-          FREEE_API.KOSAIHI_ACCOUNT_IDS.includes(detail.account_item_id) &&
-          detail.amount >= FREEE_API.EXPENSE_THRESHOLD
-      )
+  return deals.flatMap((deal) => {
+    console.log("Deal details:", deal.details);
+    // deal.details が存在し、配列であるかを確認
+    if (!Array.isArray(deal.details)) {
+      console.warn("Invalid or missing details format:", deal.details);
+      return []; // 無効な場合は空配列を返す
+    }
+
+    return deal.details
+      .filter((detail) => {
+        FREEE_API.KOSAIHI_ACCOUNT_IDS.includes(detail.account_item_id) &&
+          detail.amount >= FREEE_API.EXPENSE_THRESHOLD;
+      })
       .map((detail) => ({
         amount: detail.amount,
         date: deal.issue_date,
         description: detail.description || "説明なし",
-      }))
-  );
+      }));
+  });
 }
 
 export async function getHighExpenses(lastCheckedDate) {
@@ -144,7 +156,7 @@ export async function getHighExpenses(lastCheckedDate) {
 
     return {
       expenses: highExpenses,
-      lastCheckedDate: now,
+      lastCheckedDate: lastCheckedDate,
     };
   } catch (error) {
     console.error("Failed to fetch high expenses:", error);
