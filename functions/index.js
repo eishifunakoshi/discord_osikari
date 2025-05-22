@@ -4,7 +4,7 @@ import { onSchedule } from "firebase-functions/v2/scheduler";
 
 export const weeklyMessage = onSchedule(
   {
-    schedule: "0 3 * * 5",
+    schedule: "0 9 15 * *",
     timeZone: "Asia/Tokyo",
     region: "asia-northeast1",
   },

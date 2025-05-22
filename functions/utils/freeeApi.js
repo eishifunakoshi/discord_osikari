@@ -134,13 +134,14 @@ function filterHighExpenses(deals, startDate, endDate) {
 
 export async function getHighExpenses(lastCheckedDate) {
   try {
-    const endDateObj = new Date(lastCheckedDate);
-    endDateObj.setDate(endDateObj.getDate() - 7); // 1週間前
-    const endDate = endDateObj.toISOString().split("T")[0];
+    const year = lastCheckedDate.getFullYear();
+    const month = lastCheckedDate.getMonth();
 
-    const startDateObj = new Date(lastCheckedDate);
-    startDateObj.setDate(startDateObj.getDate() - 14); //2週間前
+    const startDateObj = new Date(year, month - 1, 1); // 前月1日
+    const endDateObj = new Date(year, month, 0); // 前月末日
+
     const startDate = startDateObj.toISOString().split("T")[0];
+    const endDate = endDateObj.toISOString().split("T")[0];
 
     console.log("Start Date:", startDate);
     console.log("End Date:", endDate);
