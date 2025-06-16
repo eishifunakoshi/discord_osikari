@@ -28,6 +28,7 @@ async function fetchWithAuth(path, options = {}) {
   }
 
   const requestUrl = url.toString();
+  console.log("Request URL:", url.toString());
 
   const response = await fetch(requestUrl, {
     ...options,
