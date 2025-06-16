@@ -92,7 +92,7 @@ async function refreshAccessToken() {
   }
 }
 
-async function getExpenses() {
+async function getExpenses(startDate, endDate) {
   try {
     const companyId = process.env.FREEE_COMPANY_ID;
     const data = await fetchWithAuth("deals", {
@@ -100,6 +100,8 @@ async function getExpenses() {
         company_id: companyId,
         type: "expense",
         limit: 100,
+        start_data: startDate,
+        end_date: endDate,
       },
     });
     return data.deals || [];
@@ -146,7 +148,7 @@ export async function getHighExpenses(lastCheckedDate) {
     console.log("Start Date:", startDate);
     console.log("End Date:", endDate);
 
-    const deals = await getExpenses();
+    const deals = await getExpenses(startDate, endDate);
 
     console.log("Deals:", deals);
 
