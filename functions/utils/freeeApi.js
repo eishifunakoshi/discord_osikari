@@ -94,21 +94,30 @@ async function refreshAccessToken() {
 }
 
 async function getExpenses(startDate, endDate) {
-  try {
-    const companyId = process.env.FREEE_COMPANY_ID;
+  const companyId = process.env.FREEE_COMPANY_ID;
+  const allDeals = [];
+
+  for (let offset = 0; offset < 300; offset += 100) {
     const data = await fetchWithAuth("deals", {
       params: {
         company_id: companyId,
         type: "expense",
-        limit: 100,
         start_date: startDate,
         end_date: endDate,
+        limit: 100,
+        offset,
       },
     });
-    return data.deals || [];
-  } catch (error) {
-    throw new Error(`Failed to fetch expenses: ${error.message}`);
+
+    const deals = data.deals || [];
+    allDeals.push(...deals);
+
+    if (deals.length < 100) {
+      break;
+    }
   }
+
+  return allDeals;
 }
 
 function filterHighExpenses(deals, startDate, endDate) {
