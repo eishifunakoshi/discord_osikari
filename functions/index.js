@@ -19,7 +19,7 @@ export const weeklyMessage = onSchedule(
       return null;
     } else {
       for (const expense of expenses) {
-        const message = `${periodMessage}\n 📢 **高額交際費の通知**\n- 金額: ¥${expense.amount}\n- 日付: ${expense.date}`;
+        const message = `${periodMessage}\n  **高額交際費の通知**\n- 金額: ¥${expense.amount}\n- 日付: ${expense.date}`;
         await notification(message);
       }
     }
