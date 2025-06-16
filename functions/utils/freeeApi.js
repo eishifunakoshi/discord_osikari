@@ -115,6 +115,7 @@ async function getExpenses(startDate, endDate) {
     }
   }
 
+  console.log("All Fetched Deals:", allDeals.length, allDeals);
   return allDeals;
 }
 
@@ -157,8 +158,6 @@ export async function getHighExpenses(lastCheckedDate) {
     console.log("End Date:", endDate);
 
     const deals = await getExpenses(startDate, endDate);
-
-    console.log("allDeals:", allDeals);
 
     const highExpenses = filterHighExpenses(deals, startDate, endDate);
 
