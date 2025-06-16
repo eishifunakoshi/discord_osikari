@@ -28,7 +28,6 @@ async function fetchWithAuth(path, options = {}) {
   }
 
   const requestUrl = url.toString();
-  console.log("Request URL:", url.toString());
 
   const response = await fetch(requestUrl, {
     ...options,
@@ -50,7 +49,6 @@ async function fetchWithAuth(path, options = {}) {
   }
 
   const responseData = await response.json();
-  console.log("Response JSON Data:", responseData);
 
   return responseData;
 }
@@ -160,7 +158,7 @@ export async function getHighExpenses(lastCheckedDate) {
 
     const deals = await getExpenses(startDate, endDate);
 
-    console.log("Deals:", deals);
+    console.log("allDeals:", allDeals);
 
     const highExpenses = filterHighExpenses(deals, startDate, endDate);
 
