@@ -100,7 +100,7 @@ async function getExpenses(startDate, endDate) {
         company_id: companyId,
         type: "expense",
         limit: 100,
-        start_data: startDate,
+        start_date: startDate,
         end_date: endDate,
       },
     });
